@@ -1,0 +1,3 @@
+includeBuild './aar-maven-publish-plugin'
+
+include ':app', ':library', ':library2'
