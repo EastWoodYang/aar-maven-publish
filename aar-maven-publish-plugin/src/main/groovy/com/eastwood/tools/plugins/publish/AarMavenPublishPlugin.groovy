@@ -76,32 +76,33 @@ class AarMavenPublishPlugin implements Plugin<Project> {
         String variantName = productFlavors.size() > 0 ? (productFlavors.join('-') + '-' + libraryVariant.buildType.name) : libraryVariant.buildType.name
 
         File aarOutputFile
-        libraryVariant.outputs.each {
-            if (variantName == it.name) {
-                aarOutputFile = it.getOutputFile()
+
+        def bundleAarTask = project.tasks.getByName('bundle' + libraryVariant.name.capitalize() + 'Aar')
+        bundleAarTask.outputs.files.each {
+            if (it.name.contains(variantName)) {
+                aarOutputFile = it.canonicalFile
             }
         }
+        println aarOutputFile.absolutePath
 
-        def packageAarSourcesTaskName = 'package' + libraryVariant.name.capitalize() + 'AarSource'
-        def packageAarSourceTask = project.tasks.create(packageAarSourcesTaskName, Jar)
-        packageAarSourceTask.dependsOn 'assemble' + libraryVariant.name.capitalize()
-        String archiveBaseName = packageAarSourceTask.getArchiveBaseName().get()
-        packageAarSourceTask.archiveBaseName = archiveBaseName + '-source-' + variantName
+        def bundleAarSourceTask = project.tasks.create('bundle' + libraryVariant.name.capitalize() + 'AarSource', Jar)
+        bundleAarSourceTask.dependsOn bundleAarTask
+        bundleAarSourceTask.archiveName = aarOutputFile.name.replace('.aar', 'source.jar')
         libraryVariant.sourceSets.each {
             List<String> sourcePaths = new ArrayList<>()
             it.javaDirectories.each {
                 sourcePaths.add(it.absolutePath)
             }
-            packageAarSourceTask.from(sourcePaths)
+            bundleAarSourceTask.from(sourcePaths)
         }
-        File aarSourceOutputFile = packageAarSourceTask.archiveFile.get().asFile
+        File aarSourceOutputFile = bundleAarSourceTask.archivePath
+        println aarSourceOutputFile.absolutePath
 
         def publicationName = 'Aar[' + libraryVariant.name + ']'
         String publishTaskNamePrefix = "publish${publicationName}PublicationTo"
         project.tasks.whenTaskAdded {
             if (it.name.startsWith(publishTaskNamePrefix)) {
-                it.dependsOn 'assemble' + libraryVariant.name.capitalize()
-                it.dependsOn packageAarSourcesTaskName
+                it.dependsOn bundleAarTask, bundleAarSourceTask
             }
         }
 

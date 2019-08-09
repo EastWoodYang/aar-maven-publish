@@ -7,7 +7,7 @@ buildscript {
 
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.4.2'
+        classpath 'com.android.tools.build:gradle:3.3.2'
 
         classpath 'com.eastwood.tools.plugins:aar-maven-publish'
 
@@ -35,7 +35,7 @@ aarMavenPublish {
     repositories {
         maven {
             name = "mavenDev"
-            url "http://xxx.xxx.xxx:xxx/content/repositories/xxxx_dev/"
+            url "http://xxx.xxx.xxx/content/repositories/xxxx_dev/"
             credentials {
                 username 'xxxxxx'
                 password '******'
@@ -44,7 +44,7 @@ aarMavenPublish {
 
         maven {
             name = "mavenRelease"
-            url "http://xxx.xxx.xxx:xxx/content/repositories/xxxx_release/"
+            url "http://xxx.xxx.xxx/content/repositories/xxxx_release/"
             credentials {
                 username 'xxxxxx'
                 password '******'
