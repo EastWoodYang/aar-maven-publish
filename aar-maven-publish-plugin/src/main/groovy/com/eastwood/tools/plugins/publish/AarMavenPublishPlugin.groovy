@@ -73,21 +73,21 @@ class AarMavenPublishPlugin implements Plugin<Project> {
         libraryVariant.productFlavors.each {
             productFlavors.add(it.name)
         }
-        String variantName = productFlavors.size() > 0 ? (productFlavors.join('-') + '-' + libraryVariant.buildType.name) : libraryVariant.buildType.name
 
         File aarOutputFile
-
         def bundleAarTask = project.tasks.getByName('bundle' + libraryVariant.name.capitalize() + 'Aar')
         bundleAarTask.outputs.files.each {
-            if (it.name.contains(variantName)) {
+            if(it.name.endsWith('.aar')) {
                 aarOutputFile = it.canonicalFile
             }
         }
-        println aarOutputFile.absolutePath
+        if(aarOutputFile == null) {
+            throw new GradleException("Failure to find aar output file.")
+        }
 
         def bundleAarSourceTask = project.tasks.create('bundle' + libraryVariant.name.capitalize() + 'AarSource', Jar)
         bundleAarSourceTask.dependsOn bundleAarTask
-        bundleAarSourceTask.archiveName = aarOutputFile.name.replace('.aar', 'source.jar')
+        bundleAarSourceTask.archiveName = aarOutputFile.name.replace('.aar', '-source.jar')
         libraryVariant.sourceSets.each {
             List<String> sourcePaths = new ArrayList<>()
             it.javaDirectories.each {
@@ -96,7 +96,6 @@ class AarMavenPublishPlugin implements Plugin<Project> {
             bundleAarSourceTask.from(sourcePaths)
         }
         File aarSourceOutputFile = bundleAarSourceTask.archivePath
-        println aarSourceOutputFile.absolutePath
 
         def publicationName = 'Aar[' + libraryVariant.name + ']'
         String publishTaskNamePrefix = "publish${publicationName}PublicationTo"
